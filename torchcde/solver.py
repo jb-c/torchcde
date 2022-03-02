@@ -101,13 +101,16 @@ def _check_compatability(X, func, z0, t):
 
 
 class _VectorField(torch.nn.Module):
-    def __init__(self, X, func, is_tensor, is_prod):
+    def __init__(self, X, func, is_tensor, is_prod, p = 0.5):
         super(_VectorField, self).__init__()
 
         self.X = X
         self.func = func
         self.is_tensor = is_tensor
         self.is_prod = is_prod
+
+        # Added param p, denotes the dropout probability
+        self.p = 0.5
 
         # torchsde backend
         self.sde_type = getattr(func, "sde_type", "stratonovich")
@@ -138,10 +141,10 @@ class _VectorField(torch.nn.Module):
     f = forward
 
     def g(self, t, z):
-        return torch.zeros_like(z).unsqueeze(-1)
+        return np.sqrt(self.p / (1 - self.p)) * self.forward(t,z)
 
 
-def cdeint(X, func, z0, t, adjoint=True, backend="torchdiffeq", **kwargs):
+def cdeint(X, func, z0, t, adjoint=True, backend="torchdiffeq", p = 0.5,**kwargs):
     r"""Solves a system of controlled differential equations.
 
     Solves the controlled problem:
@@ -220,8 +223,7 @@ def cdeint(X, func, z0, t, adjoint=True, backend="torchdiffeq", **kwargs):
                               "adjoint_params = tuple(func.parameters()) + (coeffs,)\n"
                               "cdeint(X=X, func=func, ..., adjoint_params=adjoint_params)\n"
                               "```")
-
-    vector_field = _VectorField(X=X, func=func, is_tensor=is_tensor, is_prod=is_prod)
+    vector_field = _VectorField(X=X, func=func, is_tensor=is_tensor, is_prod=is_prod, p=p)
     if backend == "torchdiffeq":
         odeint = torchdiffeq.odeint_adjoint if adjoint else torchdiffeq.odeint
         out = odeint(func=vector_field, y0=z0, t=t, **kwargs)
