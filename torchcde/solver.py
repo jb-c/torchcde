@@ -1,3 +1,4 @@
+import numpy as np
 import torch
 import torchdiffeq
 import torchsde
@@ -101,7 +102,7 @@ def _check_compatability(X, func, z0, t):
 
 
 class _VectorField(torch.nn.Module):
-    def __init__(self, X, func, is_tensor, is_prod, p = 0.5):
+    def __init__(self, X, func, is_tensor, is_prod, dropout_p = 0.5):
         super(_VectorField, self).__init__()
 
         self.X = X
@@ -110,11 +111,11 @@ class _VectorField(torch.nn.Module):
         self.is_prod = is_prod
 
         # Added param p, denotes the dropout probability
-        self.p = 0.5
+        self.dropout_p = 0.5
 
         # torchsde backend
-        self.sde_type = getattr(func, "sde_type", "stratonovich")
-        self.noise_type = getattr(func, "noise_type", "additive")
+        self.sde_type = getattr(func, "sde_type", "ito")
+        self.noise_type = getattr(func, "noise_type", "diagonal")
 
     # torchdiffeq backend
     def forward(self, t, z):
@@ -228,6 +229,7 @@ def cdeint(X, func, z0, t, adjoint=True, backend="torchdiffeq", p = 0.5,**kwargs
         odeint = torchdiffeq.odeint_adjoint if adjoint else torchdiffeq.odeint
         out = odeint(func=vector_field, y0=z0, t=t, **kwargs)
     elif backend == "torchsde":
+        print("Jacob was here")
         sdeint = torchsde.sdeint_adjoint if adjoint else torchsde.sdeint
         out = sdeint(sde=vector_field, y0=z0, ts=t, **kwargs)
     else:
