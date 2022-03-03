@@ -142,7 +142,7 @@ class _VectorField(torch.nn.Module):
     f = forward
 
     def g(self, t, z):
-        return np.sqrt(self.dropout_p / (1 - self.self.dropout_p)) * self.forward(t,z)
+        return np.sqrt(self.dropout_p / (1 - self.dropout_p)) * self.forward(t,z)
 
 
 def cdeint(X, func, z0, t, adjoint=True, backend="torchdiffeq", p = 0.5,**kwargs):
