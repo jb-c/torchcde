@@ -224,7 +224,7 @@ def cdeint(X, func, z0, t, adjoint=True, backend="torchdiffeq", p = 0.5,**kwargs
                               "adjoint_params = tuple(func.parameters()) + (coeffs,)\n"
                               "cdeint(X=X, func=func, ..., adjoint_params=adjoint_params)\n"
                               "```")
-    vector_field = _VectorField(X=X, func=func, is_tensor=is_tensor, is_prod=is_prod, p=p)
+    vector_field = _VectorField(X=X, func=func, is_tensor=is_tensor, is_prod=is_prod, dropout_p=p)
     if backend == "torchdiffeq":
         odeint = torchdiffeq.odeint_adjoint if adjoint else torchdiffeq.odeint
         out = odeint(func=vector_field, y0=z0, t=t, **kwargs)
